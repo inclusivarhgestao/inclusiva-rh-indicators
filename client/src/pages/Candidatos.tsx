@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Trash2, Edit2, Plus } from "lucide-react";
+import { Trash2, Edit2, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 
 interface CandidatosProps {
@@ -23,9 +23,19 @@ const statusColors: Record<string, string> = {
   rejeitado: "bg-red-100 text-red-800",
 } as Record<string, string>;
 
+const statusLabels: Record<string, string> = {
+  triagem: "Triagem",
+  entrevista: "Entrevista",
+  teste: "Teste",
+  oferta: "Oferta",
+  contratado: "Contratado",
+  rejeitado: "Rejeitado",
+};
+
 export default function Candidatos({ mes, ano }: CandidatosProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     vagaId: "",
     nome: "",
@@ -110,6 +120,11 @@ export default function Candidatos({ mes, ano }: CandidatosProps) {
       </div>
     );
   }
+
+  // Filtrar candidatos por status
+  const filteredCandidatos = statusFilter
+    ? candidatos?.filter((c: any) => c.status === statusFilter) || []
+    : candidatos || [];
 
   return (
     <div className="space-y-6">
@@ -207,10 +222,40 @@ export default function Candidatos({ mes, ano }: CandidatosProps) {
         </Dialog>
       </div>
 
+      {/* Filtro por Status */}
+      <div className="flex flex-wrap gap-2 pb-4 border-b border-gray-200">
+        <button
+          onClick={() => setStatusFilter(null)}
+          className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+            statusFilter === null
+              ? "bg-primary text-white"
+              : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+          }`}
+        >
+          Todos ({candidatos?.length || 0})
+        </button>
+        {Object.entries(statusLabels).map(([status, label]) => {
+          const count = candidatos?.filter((c: any) => c.status === status).length || 0;
+          return (
+            <button
+              key={status}
+              onClick={() => setStatusFilter(status)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                statusFilter === status
+                  ? statusColors[status]
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              }`}
+            >
+              {label} ({count})
+            </button>
+          );
+        })}
+      </div>
+
       {/* Candidatos List */}
       <div className="space-y-3">
-        {candidatos && candidatos.length > 0 ? (
-          candidatos.map((candidato: any) => (
+        {filteredCandidatos && filteredCandidatos.length > 0 ? (
+          filteredCandidatos.map((candidato: any) => (
             <Card key={candidato.id} className="p-4 border-l-4 border-l-secondary">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -249,7 +294,11 @@ export default function Candidatos({ mes, ano }: CandidatosProps) {
             </Card>
           ))
         ) : (
-          <div className="text-center py-8 text-gray-500">Nenhum candidato cadastrado para este período</div>
+          <div className="text-center py-8 text-gray-500">
+            {statusFilter
+              ? `Nenhum candidato em ${statusLabels[statusFilter]?.toLowerCase()} para este período`
+              : "Nenhum candidato cadastrado para este período"}
+          </div>
         )}
       </div>
     </div>
