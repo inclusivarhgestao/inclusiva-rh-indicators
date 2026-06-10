@@ -1,0 +1,246 @@
+import { useState } from "react";
+import { trpc } from "@/lib/trpc";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Trash2, Edit2, Plus } from "lucide-react";
+import { toast } from "sonner";
+
+interface CandidatosProps {
+  mes: number;
+  ano: number;
+}
+
+const statusColors: Record<string, string> = {
+  triagem: "bg-blue-100 text-blue-800",
+  entrevista: "bg-yellow-100 text-yellow-800",
+  teste: "bg-purple-100 text-purple-800",
+  oferta: "bg-orange-100 text-orange-800",
+  contratado: "bg-green-100 text-green-800",
+  rejeitado: "bg-red-100 text-red-800",
+} as Record<string, string>;
+
+export default function Candidatos({ mes, ano }: CandidatosProps) {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [formData, setFormData] = useState({
+    vagaId: "",
+    nome: "",
+    email: "",
+    telefone: "",
+    status: "triagem",
+  });
+
+  const { data: vagas } = trpc.vagas.list.useQuery({ mes, ano });
+  const { data: candidatos, isLoading, refetch } = trpc.candidatos.listByPeriod.useQuery({ mes, ano });
+  const createCandidato = trpc.candidatos.create.useMutation();
+  const updateCandidato = trpc.candidatos.update.useMutation();
+  const deleteCandidato = trpc.candidatos.delete.useMutation();
+
+  const handleSubmit = async () => {
+    if (!formData.vagaId || !formData.nome) {
+      toast.error("Preencha todos os campos obrigatórios");
+      return;
+    }
+
+    try {
+      if (editingId) {
+        await updateCandidato.mutateAsync({
+          id: editingId,
+          nome: formData.nome,
+          email: formData.email,
+          telefone: formData.telefone,
+          status: formData.status as any,
+        });
+        toast.success("Candidato atualizado com sucesso");
+      } else {
+        await createCandidato.mutateAsync({
+          vagaId: parseInt(formData.vagaId),
+          nome: formData.nome,
+          email: formData.email,
+          telefone: formData.telefone,
+          dataCandidatura: new Date(),
+        });
+        toast.success("Candidato criado com sucesso");
+      }
+      setFormData({ vagaId: "", nome: "", email: "", telefone: "", status: "triagem" });
+      setEditingId(null);
+      setIsDialogOpen(false);
+      refetch();
+    } catch (error) {
+      toast.error("Erro ao salvar candidato");
+    }
+  };
+
+  const handleEdit = (candidato: any) => {
+    setFormData({
+      vagaId: candidato.vagaId.toString(),
+      nome: candidato.nome,
+      email: candidato.email || "",
+      telefone: candidato.telefone || "",
+      status: candidato.status,
+    });
+    setEditingId(candidato.id);
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm("Tem certeza que deseja deletar este candidato?")) return;
+    try {
+      await deleteCandidato.mutateAsync({ id });
+      toast.success("Candidato deletado com sucesso");
+      refetch();
+    } catch (error) {
+      toast.error("Erro ao deletar candidato");
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        {[...Array(3)].map((_, i) => (
+          <Skeleton key={i} className="h-16 w-full" />
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-primary">Candidatos</h2>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button
+              onClick={() => {
+                setFormData({ vagaId: "", nome: "", email: "", telefone: "", status: "triagem" });
+                setEditingId(null);
+              }}
+              className="bg-secondary hover:bg-secondary/90 text-secondary-foreground"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Novo Candidato
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{editingId ? "Editar Candidato" : "Novo Candidato"}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium">Vaga *</label>
+                <Select value={formData.vagaId} onValueChange={(val) => setFormData({ ...formData, vagaId: val })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione uma vaga" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {vagas?.map((vaga: any) => (
+                      <SelectItem key={vaga.id} value={vaga.id.toString()}>
+                        {vaga.cargo}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Nome *</label>
+                <Input
+                  value={formData.nome}
+                  onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
+                  placeholder="Nome do candidato"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Email</label>
+                <Input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  placeholder="email@example.com"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Telefone</label>
+                <Input
+                  value={formData.telefone}
+                  onChange={(e) => setFormData({ ...formData, telefone: e.target.value })}
+                  placeholder="(11) 99999-9999"
+                />
+              </div>
+              {editingId && (
+                <div>
+                  <label className="text-sm font-medium">Status</label>
+                  <Select value={formData.status} onValueChange={(val) => setFormData({ ...formData, status: val })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="triagem">Triagem</SelectItem>
+                      <SelectItem value="entrevista">Entrevista</SelectItem>
+                      <SelectItem value="teste">Teste</SelectItem>
+                      <SelectItem value="oferta">Oferta</SelectItem>
+                      <SelectItem value="contratado">Contratado</SelectItem>
+                      <SelectItem value="rejeitado">Rejeitado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              <Button onClick={handleSubmit} className="w-full bg-primary hover:bg-primary/90">
+                {editingId ? "Atualizar" : "Criar"} Candidato
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* Candidatos List */}
+      <div className="space-y-3">
+        {candidatos && candidatos.length > 0 ? (
+          candidatos.map((candidato: any) => (
+            <Card key={candidato.id} className="p-4 border-l-4 border-l-secondary">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg text-primary">{candidato.nome}</h3>
+                  <p className="text-sm text-gray-600">{candidato.email || "Sem email"}</p>
+                  <div className="flex gap-2 mt-2">
+                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${statusColors[candidato.status] || "bg-gray-100"}`}>
+                      {candidato.status}
+                    </span>
+                    {candidato.telefone && (
+                      <span className="text-xs text-gray-500 py-1">{candidato.telefone}</span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => handleEdit(candidato)}
+                    size="sm"
+                    variant="outline"
+                    className="border-primary text-primary hover:bg-primary/10"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    onClick={() => handleDelete(candidato.id)}
+                    size="sm"
+                    variant="outline"
+                    className="border-red-500 text-red-500 hover:bg-red-50"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          ))
+        ) : (
+          <Card className="p-8 text-center text-gray-500">
+            <p>Nenhum candidato cadastrado neste período</p>
+          </Card>
+        )}
+      </div>
+    </div>
+  );
+}

@@ -1,17 +1,10 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, decimal, date } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
- * Extend this file with additional tables as your product grows.
- * Columns use camelCase to match both database fields and generated types.
  */
 export const users = mysqlTable("users", {
-  /**
-   * Surrogate primary key. Auto-incremented numeric value managed by the database.
-   * Use this for relations between tables.
-   */
   id: int("id").autoincrement().primaryKey(),
-  /** Manus OAuth identifier (openId) returned from the OAuth callback. Unique per user. */
   openId: varchar("openId", { length: 64 }).notNull().unique(),
   name: text("name"),
   email: varchar("email", { length: 320 }),
@@ -25,4 +18,94 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-// TODO: Add your tables here
+/**
+ * Lojas/Unidades
+ */
+export const lojas = mysqlTable("lojas", {
+  id: int("id").autoincrement().primaryKey(),
+  nome: varchar("nome", { length: 255 }).notNull(),
+  cidade: varchar("cidade", { length: 255 }),
+  estado: varchar("estado", { length: 2 }),
+  ativa: int("ativa").default(1).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Loja = typeof lojas.$inferSelect;
+export type InsertLoja = typeof lojas.$inferInsert;
+
+/**
+ * Vagas de Recrutamento
+ */
+export const vagas = mysqlTable("vagas", {
+  id: int("id").autoincrement().primaryKey(),
+  cargo: varchar("cargo", { length: 255 }).notNull(),
+  lojaId: int("lojaId").notNull(),
+  status: mysqlEnum("status", ["aberta", "em_andamento", "fechada", "cancelada"]).default("aberta").notNull(),
+  dataAbertura: date("dataAbertura").notNull(),
+  dataFechamento: date("dataFechamento"),
+  descricao: text("descricao"),
+  quantidadeVagas: int("quantidadeVagas").default(1).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Vaga = typeof vagas.$inferSelect;
+export type InsertVaga = typeof vagas.$inferInsert;
+
+/**
+ * Candidatos
+ */
+export const candidatos = mysqlTable("candidatos", {
+  id: int("id").autoincrement().primaryKey(),
+  vagaId: int("vagaId").notNull(),
+  nome: varchar("nome", { length: 255 }).notNull(),
+  email: varchar("email", { length: 320 }),
+  telefone: varchar("telefone", { length: 20 }),
+  dataCandidatura: date("dataCandidatura").notNull(),
+  status: mysqlEnum("status", ["triagem", "entrevista", "teste", "oferta", "contratado", "rejeitado"]).default("triagem").notNull(),
+  observacoes: text("observacoes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Candidato = typeof candidatos.$inferSelect;
+export type InsertCandidato = typeof candidatos.$inferInsert;
+
+/**
+ * Etapas do Processo Seletivo
+ */
+export const etapasSeletivas = mysqlTable("etapasSeletivas", {
+  id: int("id").autoincrement().primaryKey(),
+  candidatoId: int("candidatoId").notNull(),
+  etapa: mysqlEnum("etapa", ["triagem", "entrevista", "teste", "oferta"]).notNull(),
+  dataEtapa: date("dataEtapa").notNull(),
+  resultado: mysqlEnum("resultado", ["pendente", "aprovado", "reprovado"]).default("pendente").notNull(),
+  observacoes: text("observacoes"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type EtapaSeletiva = typeof etapasSeletivas.$inferSelect;
+export type InsertEtapaSeletiva = typeof etapasSeletivas.$inferInsert;
+
+/**
+ * Indicadores Mensais (Relatório Editável)
+ */
+export const indicadoresMensais = mysqlTable("indicadoresMensais", {
+  id: int("id").autoincrement().primaryKey(),
+  mes: int("mes").notNull(),
+  ano: int("ano").notNull(),
+  vagasAbertas: int("vagasAbertas").default(0).notNull(),
+  vagasFechadas: int("vagasFechadas").default(0).notNull(),
+  totalCandidatos: int("totalCandidatos").default(0).notNull(),
+  contratacoes: int("contratacoes").default(0).notNull(),
+  tempoMedioFechamento: decimal("tempoMedioFechamento", { precision: 5, scale: 2 }).default("0"),
+  taxaAproveitamento: decimal("taxaAproveitamento", { precision: 5, scale: 2 }).default("0"),
+  resumo: text("resumo"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type IndicadorMensal = typeof indicadoresMensais.$inferSelect;
+export type InsertIndicadorMensal = typeof indicadoresMensais.$inferInsert;
