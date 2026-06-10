@@ -127,9 +127,12 @@ export async function createVaga(data: {
 }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
+  // Normalizar data para meia-noite UTC
+  const date = new Date(data.dataAbertura);
+  const normalizedDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
   return db.insert(vagas).values({
     ...data,
-    dataAbertura: data.dataAbertura,
+    dataAbertura: normalizedDate,
   });
 }
 
@@ -148,7 +151,10 @@ export async function updateVaga(id: number, data: Partial<{
   if (data.cargo !== undefined) updateData.cargo = data.cargo;
   if (data.lojaId !== undefined) updateData.lojaId = data.lojaId;
   if (data.status !== undefined) updateData.status = data.status;
-  if (data.dataAbertura !== undefined) updateData.dataAbertura = data.dataAbertura;
+  if (data.dataAbertura !== undefined) {
+    const date = new Date(data.dataAbertura);
+    updateData.dataAbertura = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  }
   if (data.dataFechamento !== undefined) updateData.dataFechamento = data.dataFechamento;
   if (data.descricao !== undefined) updateData.descricao = data.descricao;
   if (data.quantidadeVagas !== undefined) updateData.quantidadeVagas = data.quantidadeVagas;
@@ -194,9 +200,12 @@ export async function createCandidato(data: {
 }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
+  // Normalizar data para meia-noite UTC
+  const date = new Date(data.dataCandidatura);
+  const normalizedDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
   return db.insert(candidatos).values({
     ...data,
-    dataCandidatura: data.dataCandidatura,
+    dataCandidatura: normalizedDate,
   });
 }
 
@@ -307,7 +316,6 @@ export async function createOrUpdateIndicadorMensal(mes: number, ano: number, da
   const updateData: Record<string, any> = {};
   if (data.vagasAbertas !== undefined) updateData.vagasAbertas = data.vagasAbertas;
   if (data.vagasFechadas !== undefined) updateData.vagasFechadas = data.vagasFechadas;
-  if (data.totalCandidatos !== undefined) updateData.totalCandidatos = data.totalCandidatos;
   if (data.contratacoes !== undefined) updateData.contratacoes = data.contratacoes;
   if (data.tempoMedioFechamento !== undefined) updateData.tempoMedioFechamento = data.tempoMedioFechamento;
   if (data.taxaAproveitamento !== undefined) updateData.taxaAproveitamento = data.taxaAproveitamento;
