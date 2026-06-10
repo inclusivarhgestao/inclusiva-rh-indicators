@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,29 @@ export default function Relatorio({ mes, ano }: RelatorioProps) {
   });
 
   const { data: indicador, isLoading, refetch } = trpc.indicadores.getMensal.useQuery({ mes, ano });
+  const { data: lojas } = trpc.lojas.list.useQuery();
+  const { data: vagas } = trpc.vagas.list.useQuery({ mes, ano });
+  const { data: candidatos } = trpc.candidatos.listByPeriod.useQuery({ mes, ano });
   const updateIndicador = trpc.indicadores.update.useMutation();
+
+  // Calcular dados por loja
+  const dadosPorLoja = lojas?.map((loja: any) => {
+    const vagasLoja = vagas?.filter((v: any) => v.lojaId === loja.id) || [];
+    const candidatosLoja = candidatos?.filter((c: any) => {
+      const vagaCandidata = vagas?.find((v: any) => v.id === c.vagaId);
+      return vagaCandidata?.lojaId === loja.id;
+    }) || [];
+
+    return {
+      lojaId: loja.id,
+      lojaNome: loja.nome,
+      vagasAbertas: vagasLoja.filter((v: any) => v.status === 'aberta').length,
+      vagasFechadas: vagasLoja.filter((v: any) => v.status === 'fechada').length,
+      totalVagas: vagasLoja.length,
+      totalCandidatos: candidatosLoja.length,
+      candidatosContratados: candidatosLoja.filter((c: any) => c.status === 'contratado').length,
+    };
+  }) || [];
 
   useEffect(() => {
     if (indicador) {
@@ -120,48 +142,51 @@ export default function Relatorio({ mes, ano }: RelatorioProps) {
             </p>
           </div>
 
-          {/* Metrics Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-blue-50 p-6 rounded-lg border-l-4 border-l-primary">
-              <label className="text-sm font-medium text-gray-600">Vagas Abertas</label>
-              {isEditing ? (
-                <Input
-                  type="number"
-                  value={formData.vagasAbertas}
-                  onChange={(e) => setFormData({ ...formData, vagasAbertas: parseInt(e.target.value) || 0 })}
-                  className="mt-2"
-                />
-              ) : (
-                <p className="text-3xl font-bold text-primary mt-2">{formData.vagasAbertas}</p>
-              )}
-            </div>
+          {/* Metrics Grid - Totalizados */}
+          <div>
+            <h3 className="text-lg font-bold text-primary mb-4">Totalizados</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-blue-50 p-6 rounded-lg border-l-4 border-l-primary">
+                <label className="text-sm font-medium text-gray-600">Vagas Abertas</label>
+                {isEditing ? (
+                  <Input
+                    type="number"
+                    value={formData.vagasAbertas}
+                    onChange={(e) => setFormData({ ...formData, vagasAbertas: parseInt(e.target.value) || 0 })}
+                    className="mt-2"
+                  />
+                ) : (
+                  <p className="text-3xl font-bold text-primary mt-2">{formData.vagasAbertas}</p>
+                )}
+              </div>
 
-            <div className="bg-yellow-50 p-6 rounded-lg border-l-4 border-l-secondary">
-              <label className="text-sm font-medium text-gray-600">Vagas Fechadas</label>
-              {isEditing ? (
-                <Input
-                  type="number"
-                  value={formData.vagasFechadas}
-                  onChange={(e) => setFormData({ ...formData, vagasFechadas: parseInt(e.target.value) || 0 })}
-                  className="mt-2"
-                />
-              ) : (
-                <p className="text-3xl font-bold text-secondary mt-2">{formData.vagasFechadas}</p>
-              )}
-            </div>
+              <div className="bg-yellow-50 p-6 rounded-lg border-l-4 border-l-secondary">
+                <label className="text-sm font-medium text-gray-600">Vagas Fechadas</label>
+                {isEditing ? (
+                  <Input
+                    type="number"
+                    value={formData.vagasFechadas}
+                    onChange={(e) => setFormData({ ...formData, vagasFechadas: parseInt(e.target.value) || 0 })}
+                    className="mt-2"
+                  />
+                ) : (
+                  <p className="text-3xl font-bold text-secondary mt-2">{formData.vagasFechadas}</p>
+                )}
+              </div>
 
-            <div className="bg-green-50 p-6 rounded-lg border-l-4 border-l-green-600">
-              <label className="text-sm font-medium text-gray-600">Contratações</label>
-              {isEditing ? (
-                <Input
-                  type="number"
-                  value={formData.contratacoes}
-                  onChange={(e) => setFormData({ ...formData, contratacoes: parseInt(e.target.value) || 0 })}
-                  className="mt-2"
-                />
-              ) : (
-                <p className="text-3xl font-bold text-green-600 mt-2">{formData.contratacoes}</p>
-              )}
+              <div className="bg-green-50 p-6 rounded-lg border-l-4 border-l-green-600">
+                <label className="text-sm font-medium text-gray-600">Contratações</label>
+                {isEditing ? (
+                  <Input
+                    type="number"
+                    value={formData.contratacoes}
+                    onChange={(e) => setFormData({ ...formData, contratacoes: parseInt(e.target.value) || 0 })}
+                    className="mt-2"
+                  />
+                ) : (
+                  <p className="text-3xl font-bold text-green-600 mt-2">{formData.contratacoes}</p>
+                )}
+              </div>
             </div>
           </div>
 
@@ -209,6 +234,45 @@ export default function Relatorio({ mes, ano }: RelatorioProps) {
               ) : (
                 <p className="text-3xl font-bold text-pink-600 mt-2">{formData.taxaAproveitamento.toFixed(1)}%</p>
               )}
+            </div>
+          </div>
+
+          {/* Dados por Loja */}
+          <div>
+            <h3 className="text-lg font-bold text-primary mb-4">Dados por Loja</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-sm">
+                <thead>
+                  <tr className="bg-primary/10">
+                    <th className="border p-3 text-left font-semibold">Loja</th>
+                    <th className="border p-3 text-center font-semibold">Vagas Abertas</th>
+                    <th className="border p-3 text-center font-semibold">Vagas Fechadas</th>
+                    <th className="border p-3 text-center font-semibold">Total Vagas</th>
+                    <th className="border p-3 text-center font-semibold">Candidatos</th>
+                    <th className="border p-3 text-center font-semibold">Contratados</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dadosPorLoja.map((loja: any) => (
+                    <tr key={loja.lojaId} className="hover:bg-gray-50">
+                      <td className="border p-3 font-medium">{loja.lojaNome}</td>
+                      <td className="border p-3 text-center text-blue-600 font-semibold">{loja.vagasAbertas}</td>
+                      <td className="border p-3 text-center text-yellow-600 font-semibold">{loja.vagasFechadas}</td>
+                      <td className="border p-3 text-center text-gray-600">{loja.totalVagas}</td>
+                      <td className="border p-3 text-center text-purple-600 font-semibold">{loja.totalCandidatos}</td>
+                      <td className="border p-3 text-center text-green-600 font-semibold">{loja.candidatosContratados}</td>
+                    </tr>
+                  ))}
+                  <tr className="bg-primary/5 font-bold">
+                    <td className="border p-3">TOTAL</td>
+                    <td className="border p-3 text-center text-blue-600">{dadosPorLoja.reduce((sum: number, l: any) => sum + l.vagasAbertas, 0)}</td>
+                    <td className="border p-3 text-center text-yellow-600">{dadosPorLoja.reduce((sum: number, l: any) => sum + l.vagasFechadas, 0)}</td>
+                    <td className="border p-3 text-center text-gray-600">{dadosPorLoja.reduce((sum: number, l: any) => sum + l.totalVagas, 0)}</td>
+                    <td className="border p-3 text-center text-purple-600">{dadosPorLoja.reduce((sum: number, l: any) => sum + l.totalCandidatos, 0)}</td>
+                    <td className="border p-3 text-center text-green-600">{dadosPorLoja.reduce((sum: number, l: any) => sum + l.candidatosContratados, 0)}</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
 

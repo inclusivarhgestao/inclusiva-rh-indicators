@@ -32,6 +32,7 @@ export default function Candidatos({ mes, ano }: CandidatosProps) {
     email: "",
     telefone: "",
     status: "triagem",
+    dataCandidatura: new Date().toISOString().split('T')[0],
   });
 
   const { data: vagas } = trpc.vagas.list.useQuery({ mes, ano });
@@ -62,11 +63,11 @@ export default function Candidatos({ mes, ano }: CandidatosProps) {
           nome: formData.nome,
           email: formData.email,
           telefone: formData.telefone,
-          dataCandidatura: new Date(),
+          dataCandidatura: new Date(formData.dataCandidatura),
         });
         toast.success("Candidato criado com sucesso");
       }
-      setFormData({ vagaId: "", nome: "", email: "", telefone: "", status: "triagem" });
+      setFormData({ vagaId: "", nome: "", email: "", telefone: "", status: "triagem", dataCandidatura: new Date().toISOString().split('T')[0] });
       setEditingId(null);
       setIsDialogOpen(false);
       refetch();
@@ -82,6 +83,7 @@ export default function Candidatos({ mes, ano }: CandidatosProps) {
       email: candidato.email || "",
       telefone: candidato.telefone || "",
       status: candidato.status,
+      dataCandidatura: candidato.dataCandidatura ? new Date(candidato.dataCandidatura).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
     });
     setEditingId(candidato.id);
     setIsDialogOpen(true);
@@ -116,7 +118,7 @@ export default function Candidatos({ mes, ano }: CandidatosProps) {
           <DialogTrigger asChild>
             <Button
               onClick={() => {
-                setFormData({ vagaId: "", nome: "", email: "", telefone: "", status: "triagem" });
+                setFormData({ vagaId: "", nome: "", email: "", telefone: "", status: "triagem", dataCandidatura: new Date().toISOString().split('T')[0] });
                 setEditingId(null);
               }}
               className="bg-secondary hover:bg-secondary/90 text-secondary-foreground"
@@ -150,7 +152,7 @@ export default function Candidatos({ mes, ano }: CandidatosProps) {
                 <Input
                   value={formData.nome}
                   onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-                  placeholder="Nome do candidato"
+                  placeholder="Nome completo"
                 />
               </div>
               <div>
@@ -168,6 +170,14 @@ export default function Candidatos({ mes, ano }: CandidatosProps) {
                   value={formData.telefone}
                   onChange={(e) => setFormData({ ...formData, telefone: e.target.value })}
                   placeholder="(11) 99999-9999"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Data de Candidatura *</label>
+                <Input
+                  type="date"
+                  value={formData.dataCandidatura}
+                  onChange={(e) => setFormData({ ...formData, dataCandidatura: e.target.value })}
                 />
               </div>
               {editingId && (
@@ -206,6 +216,7 @@ export default function Candidatos({ mes, ano }: CandidatosProps) {
                   <h3 className="font-semibold text-lg text-primary">{candidato.nome}</h3>
                   <p className="text-sm text-gray-600">Vaga: {vagas?.find((v: any) => v.id === candidato.vagaId)?.cargo || 'Desconhecida'}</p>
                   <p className="text-sm text-gray-600">{candidato.email || "Sem email"}</p>
+                  <p className="text-sm text-gray-600">Data: {new Date(candidato.dataCandidatura).toLocaleDateString('pt-BR')}</p>
                   <div className="flex gap-2 mt-2">
                     <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${statusColors[candidato.status] || "bg-gray-100"}`}>
                       {candidato.status}
@@ -220,7 +231,7 @@ export default function Candidatos({ mes, ano }: CandidatosProps) {
                     onClick={() => handleEdit(candidato)}
                     size="sm"
                     variant="outline"
-                    className="border-primary text-primary hover:bg-primary/10"
+                    className="text-blue-600 border-blue-600 hover:bg-blue-50"
                   >
                     <Edit2 className="w-4 h-4" />
                   </Button>
@@ -228,7 +239,7 @@ export default function Candidatos({ mes, ano }: CandidatosProps) {
                     onClick={() => handleDelete(candidato.id)}
                     size="sm"
                     variant="outline"
-                    className="border-red-500 text-red-500 hover:bg-red-50"
+                    className="text-red-600 border-red-600 hover:bg-red-50"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -237,9 +248,7 @@ export default function Candidatos({ mes, ano }: CandidatosProps) {
             </Card>
           ))
         ) : (
-          <Card className="p-8 text-center text-gray-500">
-            <p>Nenhum candidato cadastrado neste período</p>
-          </Card>
+          <div className="text-center py-8 text-gray-500">Nenhum candidato cadastrado para este período</div>
         )}
       </div>
     </div>

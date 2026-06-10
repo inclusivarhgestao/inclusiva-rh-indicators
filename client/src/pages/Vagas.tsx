@@ -22,6 +22,7 @@ export default function Vagas({ mes, ano }: VagasProps) {
     lojaId: "",
     descricao: "",
     quantidadeVagas: "1",
+    dataAbertura: new Date().toISOString().split('T')[0],
   });
 
   const { data: vagas, isLoading, refetch } = trpc.vagas.list.useQuery({ mes, ano });
@@ -42,6 +43,7 @@ export default function Vagas({ mes, ano }: VagasProps) {
           id: editingId,
           cargo: formData.cargo,
           lojaId: parseInt(formData.lojaId),
+          dataAbertura: new Date(formData.dataAbertura),
           descricao: formData.descricao,
           quantidadeVagas: parseInt(formData.quantidadeVagas),
         });
@@ -50,13 +52,13 @@ export default function Vagas({ mes, ano }: VagasProps) {
         await createVaga.mutateAsync({
           cargo: formData.cargo,
           lojaId: parseInt(formData.lojaId),
-          dataAbertura: new Date(),
+          dataAbertura: new Date(formData.dataAbertura),
           descricao: formData.descricao,
           quantidadeVagas: parseInt(formData.quantidadeVagas),
         });
         toast.success("Vaga criada com sucesso");
       }
-      setFormData({ cargo: "", lojaId: "", descricao: "", quantidadeVagas: "1" });
+      setFormData({ cargo: "", lojaId: "", descricao: "", quantidadeVagas: "1", dataAbertura: new Date().toISOString().split('T')[0] });
       setEditingId(null);
       setIsDialogOpen(false);
       refetch();
@@ -71,6 +73,7 @@ export default function Vagas({ mes, ano }: VagasProps) {
       lojaId: vaga.lojaId.toString(),
       descricao: vaga.descricao || "",
       quantidadeVagas: vaga.quantidadeVagas.toString(),
+      dataAbertura: vaga.dataAbertura ? new Date(vaga.dataAbertura).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
     });
     setEditingId(vaga.id);
     setIsDialogOpen(true);
@@ -100,12 +103,12 @@ export default function Vagas({ mes, ano }: VagasProps) {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-primary">Controle de Vagas</h2>
+        <h2 className="text-2xl font-bold text-primary">Vagas</h2>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button
               onClick={() => {
-                setFormData({ cargo: "", lojaId: "", descricao: "", quantidadeVagas: "1" });
+                setFormData({ cargo: "", lojaId: "", descricao: "", quantidadeVagas: "1", dataAbertura: new Date().toISOString().split('T')[0] });
                 setEditingId(null);
               }}
               className="bg-secondary hover:bg-secondary/90 text-secondary-foreground"
@@ -143,6 +146,14 @@ export default function Vagas({ mes, ano }: VagasProps) {
                 </Select>
               </div>
               <div>
+                <label className="text-sm font-medium">Data de Abertura *</label>
+                <Input
+                  type="date"
+                  value={formData.dataAbertura}
+                  onChange={(e) => setFormData({ ...formData, dataAbertura: e.target.value })}
+                />
+              </div>
+              <div>
                 <label className="text-sm font-medium">Quantidade de Vagas</label>
                 <Input
                   type="number"
@@ -178,6 +189,7 @@ export default function Vagas({ mes, ano }: VagasProps) {
                 <div className="flex-1">
                   <h3 className="font-semibold text-lg text-primary">{vaga.cargo}</h3>
                   <p className="text-sm text-gray-600">Loja: {lojas?.find((l: any) => l.id === vaga.lojaId)?.nome || 'Desconhecida'} | Vagas: {vaga.quantidadeVagas}</p>
+                  <p className="text-sm text-gray-600">Data: {new Date(vaga.dataAbertura).toLocaleDateString('pt-BR')}</p>
                   <p className="text-xs text-gray-500 mt-1">
                     Status: <span className={`font-semibold ${vaga.status === 'aberta' ? 'text-green-600' : 'text-gray-600'}`}>{vaga.status}</span>
                   </p>
@@ -187,7 +199,7 @@ export default function Vagas({ mes, ano }: VagasProps) {
                     onClick={() => handleEdit(vaga)}
                     size="sm"
                     variant="outline"
-                    className="border-primary text-primary hover:bg-primary/10"
+                    className="text-blue-600 border-blue-600 hover:bg-blue-50"
                   >
                     <Edit2 className="w-4 h-4" />
                   </Button>
@@ -195,7 +207,7 @@ export default function Vagas({ mes, ano }: VagasProps) {
                     onClick={() => handleDelete(vaga.id)}
                     size="sm"
                     variant="outline"
-                    className="border-red-500 text-red-500 hover:bg-red-50"
+                    className="text-red-600 border-red-600 hover:bg-red-50"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -204,9 +216,7 @@ export default function Vagas({ mes, ano }: VagasProps) {
             </Card>
           ))
         ) : (
-          <Card className="p-8 text-center text-gray-500">
-            <p>Nenhuma vaga cadastrada neste período</p>
-          </Card>
+          <div className="text-center py-8 text-gray-500">Nenhuma vaga cadastrada para este período</div>
         )}
       </div>
     </div>
