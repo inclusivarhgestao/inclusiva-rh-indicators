@@ -121,18 +121,20 @@ export async function deleteLoja(id: number) {
 export async function createVaga(data: {
   cargo: string;
   lojaId: number;
-  dataAbertura: Date;
+  dataAbertura: Date | string;
   descricao?: string;
   quantidadeVagas?: number;
 }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  // Normalizar data para meia-noite UTC
-  const date = new Date(data.dataAbertura);
-  const normalizedDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  // Se for string (YYYY-MM-DD), converter para Date sem alterar
+  let dateValue: Date = data.dataAbertura instanceof Date ? data.dataAbertura : new Date(data.dataAbertura + 'T00:00:00Z');
   return db.insert(vagas).values({
-    ...data,
-    dataAbertura: normalizedDate,
+    cargo: data.cargo,
+    lojaId: data.lojaId,
+    dataAbertura: dateValue,
+    descricao: data.descricao,
+    quantidadeVagas: data.quantidadeVagas,
   });
 }
 
@@ -140,7 +142,7 @@ export async function updateVaga(id: number, data: Partial<{
   cargo: string;
   lojaId: number;
   status: string;
-  dataAbertura: Date;
+  dataAbertura: Date | string;
   dataFechamento: Date | null;
   descricao: string;
   quantidadeVagas: number;
@@ -152,8 +154,11 @@ export async function updateVaga(id: number, data: Partial<{
   if (data.lojaId !== undefined) updateData.lojaId = data.lojaId;
   if (data.status !== undefined) updateData.status = data.status;
   if (data.dataAbertura !== undefined) {
-    const date = new Date(data.dataAbertura);
-    updateData.dataAbertura = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    if (typeof data.dataAbertura === 'string') {
+      updateData.dataAbertura = new Date(data.dataAbertura + 'T00:00:00Z');
+    } else {
+      updateData.dataAbertura = data.dataAbertura;
+    }
   }
   if (data.dataFechamento !== undefined) updateData.dataFechamento = data.dataFechamento;
   if (data.descricao !== undefined) updateData.descricao = data.descricao;
@@ -195,17 +200,20 @@ export async function createCandidato(data: {
   nome: string;
   email?: string;
   telefone?: string;
-  dataCandidatura: Date;
+  dataCandidatura: Date | string;
   observacoes?: string;
 }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  // Normalizar data para meia-noite UTC
-  const date = new Date(data.dataCandidatura);
-  const normalizedDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  // Se for string (YYYY-MM-DD), converter para Date sem alterar
+  let dateValue: Date = data.dataCandidatura instanceof Date ? data.dataCandidatura : new Date(data.dataCandidatura + 'T00:00:00Z');
   return db.insert(candidatos).values({
-    ...data,
-    dataCandidatura: normalizedDate,
+    vagaId: data.vagaId,
+    nome: data.nome,
+    email: data.email,
+    telefone: data.telefone,
+    dataCandidatura: dateValue,
+    observacoes: data.observacoes,
   });
 }
 
