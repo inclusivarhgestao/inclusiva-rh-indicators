@@ -133,10 +133,10 @@ export default function Candidatos({ mes, ano }: CandidatosProps) {
               <div>
                 <label className="text-sm font-medium">Vaga *</label>
                 <Select value={formData.vagaId} onValueChange={(val) => setFormData({ ...formData, vagaId: val })}>
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Selecione uma vaga" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="z-50">
                     {vagas?.map((vaga: any) => (
                       <SelectItem key={vaga.id} value={vaga.id.toString()}>
                         {vaga.cargo}
