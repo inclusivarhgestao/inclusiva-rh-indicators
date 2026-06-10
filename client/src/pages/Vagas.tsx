@@ -43,7 +43,7 @@ export default function Vagas({ mes, ano }: VagasProps) {
           id: editingId,
           cargo: formData.cargo,
           lojaId: parseInt(formData.lojaId),
-          dataAbertura: new Date(formData.dataAbertura),
+          dataAbertura: new Date(formData.dataAbertura + 'T00:00:00'),
           descricao: formData.descricao,
           quantidadeVagas: parseInt(formData.quantidadeVagas),
         });
@@ -52,7 +52,7 @@ export default function Vagas({ mes, ano }: VagasProps) {
         await createVaga.mutateAsync({
           cargo: formData.cargo,
           lojaId: parseInt(formData.lojaId),
-          dataAbertura: new Date(formData.dataAbertura),
+          dataAbertura: new Date(formData.dataAbertura + 'T00:00:00'),
           descricao: formData.descricao,
           quantidadeVagas: parseInt(formData.quantidadeVagas),
         });

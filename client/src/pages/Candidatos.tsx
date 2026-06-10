@@ -63,7 +63,7 @@ export default function Candidatos({ mes, ano }: CandidatosProps) {
           nome: formData.nome,
           email: formData.email,
           telefone: formData.telefone,
-          dataCandidatura: new Date(formData.dataCandidatura),
+          dataCandidatura: new Date(formData.dataCandidatura + 'T00:00:00'),
         });
         toast.success("Candidato criado com sucesso");
       }
