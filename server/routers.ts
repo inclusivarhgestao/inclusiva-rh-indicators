@@ -67,7 +67,7 @@ export const appRouter = router({
       .input(z.object({
         cargo: z.string().min(1),
         lojaId: z.number(),
-        dataAbertura: z.date(),
+        dataAbertura: z.union([z.date(), z.string()]),
         descricao: z.string().optional(),
         quantidadeVagas: z.number().optional(),
       }))
@@ -80,7 +80,7 @@ export const appRouter = router({
         cargo: z.string().optional(),
         lojaId: z.number().optional(),
         status: z.enum(["aberta", "em_andamento", "fechada", "cancelada"]).optional(),
-        dataAbertura: z.date().optional(),
+        dataAbertura: z.union([z.date(), z.string()]).optional(),
         dataFechamento: z.date().nullable().optional(),
         descricao: z.string().optional(),
         quantidadeVagas: z.number().optional(),
@@ -118,9 +118,9 @@ export const appRouter = router({
       .input(z.object({
         vagaId: z.number(),
         nome: z.string().min(1),
-        email: z.string().email().optional(),
+        email: z.string().optional(),
         telefone: z.string().optional(),
-        dataCandidatura: z.date(),
+        dataCandidatura: z.union([z.date(), z.string()]),
         observacoes: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
