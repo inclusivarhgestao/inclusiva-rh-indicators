@@ -51,6 +51,7 @@ export default function Candidatos({ mes, ano }: CandidatosProps) {
       if (editingId) {
         await updateCandidato.mutateAsync({
           id: editingId,
+          vagaId: parseInt(formData.vagaId),
           nome: formData.nome,
           email: formData.email,
           telefone: formData.telefone,

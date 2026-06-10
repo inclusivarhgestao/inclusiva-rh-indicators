@@ -218,6 +218,7 @@ export async function createCandidato(data: {
 }
 
 export async function updateCandidato(id: number, data: Partial<{
+  vagaId: number;
   nome: string;
   email: string;
   telefone: string;
@@ -227,6 +228,7 @@ export async function updateCandidato(id: number, data: Partial<{
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   const updateData: any = {};
+  if (data.vagaId !== undefined) updateData.vagaId = data.vagaId;
   if (data.nome !== undefined) updateData.nome = data.nome;
   if (data.email !== undefined) updateData.email = data.email;
   if (data.telefone !== undefined) updateData.telefone = data.telefone;

@@ -129,6 +129,7 @@ export const appRouter = router({
     update: protectedProcedure
       .input(z.object({
         id: z.number(),
+        vagaId: z.number().optional(),
         nome: z.string().optional(),
         email: z.string().optional(),
         telefone: z.string().optional(),
