@@ -1,3 +1,13 @@
+export interface DadosLoja {
+  lojaId: number;
+  lojaNome: string;
+  vagasAbertas: number;
+  vagasFechadas: number;
+  totalVagas: number;
+  totalCandidatos: number;
+  candidatosContratados: number;
+}
+
 export interface RelatorioData {
   mes: number;
   ano: number;
@@ -8,6 +18,7 @@ export interface RelatorioData {
   tempoMedioFechamento: number;
   taxaAproveitamento: number;
   resumo: string;
+  dadosPorLoja?: DadosLoja[];
 }
 
 export function exportRelatorioPDF(data: RelatorioData) {
@@ -94,6 +105,44 @@ export function exportRelatorioPDF(data: RelatorioData) {
             </tbody>
           </table>
         </div>
+
+        ${data.dadosPorLoja && data.dadosPorLoja.length > 0 ? `
+        <div class="section">
+          <div class="section-title">Dados por Loja</div>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Loja</th>
+                <th>Vagas Abertas</th>
+                <th>Vagas Fechadas</th>
+                <th>Total Vagas</th>
+                <th>Candidatos</th>
+                <th>Contratados</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.dadosPorLoja.map(loja => `
+              <tr>
+                <td>${loja.lojaNome}</td>
+                <td>${loja.vagasAbertas}</td>
+                <td>${loja.vagasFechadas}</td>
+                <td>${loja.totalVagas}</td>
+                <td>${loja.totalCandidatos}</td>
+                <td>${loja.candidatosContratados}</td>
+              </tr>
+              `).join('')}
+              <tr style="background: #f5f5f5; font-weight: bold;">
+                <td>TOTAL</td>
+                <td>${data.dadosPorLoja.reduce((sum, l) => sum + l.vagasAbertas, 0)}</td>
+                <td>${data.dadosPorLoja.reduce((sum, l) => sum + l.vagasFechadas, 0)}</td>
+                <td>${data.dadosPorLoja.reduce((sum, l) => sum + l.totalVagas, 0)}</td>
+                <td>${data.dadosPorLoja.reduce((sum, l) => sum + l.totalCandidatos, 0)}</td>
+                <td>${data.dadosPorLoja.reduce((sum, l) => sum + l.candidatosContratados, 0)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        ` : ""}
 
         ${data.resumo ? `
         <div class="section">

@@ -91,6 +91,7 @@ export default function Relatorio({ mes, ano }: RelatorioProps) {
         tempoMedioFechamento: formData.tempoMedioFechamento,
         taxaAproveitamento: formData.taxaAproveitamento,
         resumo: formData.resumo,
+        dadosPorLoja: dadosPorLoja,
       });
       toast.success("PDF aberto para impressão/download");
     } catch (error) {
