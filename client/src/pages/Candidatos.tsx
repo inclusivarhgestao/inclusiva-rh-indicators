@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Trash2, Edit2, Plus, X } from "lucide-react";
+import { Trash2, Edit2, Plus, X, Search } from "lucide-react";
 import { toast } from "sonner";
 
 interface CandidatosProps {
@@ -36,6 +36,7 @@ export default function Candidatos({ mes, ano }: CandidatosProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const [formData, setFormData] = useState({
     vagaId: "",
     nome: "",
@@ -121,10 +122,10 @@ export default function Candidatos({ mes, ano }: CandidatosProps) {
     );
   }
 
-  // Filtrar candidatos por status
-  const filteredCandidatos = statusFilter
-    ? candidatos?.filter((c: any) => c.status === statusFilter) || []
-    : candidatos || [];
+  // Filtrar candidatos por status e busca por nome
+  const filteredCandidatos = (candidatos || [])
+    .filter((c: any) => statusFilter === null || c.status === statusFilter)
+    .filter((c: any) => c.nome.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
     <div className="space-y-6">
@@ -222,6 +223,18 @@ export default function Candidatos({ mes, ano }: CandidatosProps) {
         </Dialog>
       </div>
 
+      {/* Campo de Busca */}
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+        <Input
+          type="text"
+          placeholder="Buscar por nome..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-10 w-full border border-gray-300 rounded-lg"
+        />
+      </div>
+
       {/* Filtro por Status */}
       <div className="flex flex-wrap gap-2 pb-4 border-b border-gray-200">
         <button
@@ -235,7 +248,7 @@ export default function Candidatos({ mes, ano }: CandidatosProps) {
           Todos ({candidatos?.length || 0})
         </button>
         {Object.entries(statusLabels).map(([status, label]) => {
-          const count = candidatos?.filter((c: any) => c.status === status).length || 0;
+          const count = (candidatos || []).filter((c: any) => c.status === status && c.nome.toLowerCase().includes(searchTerm.toLowerCase())).length || 0;
           return (
             <button
               key={status}
