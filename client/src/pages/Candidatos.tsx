@@ -204,6 +204,7 @@ export default function Candidatos({ mes, ano }: CandidatosProps) {
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <h3 className="font-semibold text-lg text-primary">{candidato.nome}</h3>
+                  <p className="text-sm text-gray-600">Vaga: {vagas?.find((v: any) => v.id === candidato.vagaId)?.cargo || 'Desconhecida'}</p>
                   <p className="text-sm text-gray-600">{candidato.email || "Sem email"}</p>
                   <div className="flex gap-2 mt-2">
                     <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${statusColors[candidato.status] || "bg-gray-100"}`}>

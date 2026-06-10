@@ -177,7 +177,7 @@ export default function Vagas({ mes, ano }: VagasProps) {
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <h3 className="font-semibold text-lg text-primary">{vaga.cargo}</h3>
-                  <p className="text-sm text-gray-600">Loja ID: {vaga.lojaId} | Vagas: {vaga.quantidadeVagas}</p>
+                  <p className="text-sm text-gray-600">Loja: {lojas?.find((l: any) => l.id === vaga.lojaId)?.nome || 'Desconhecida'} | Vagas: {vaga.quantidadeVagas}</p>
                   <p className="text-xs text-gray-500 mt-1">
                     Status: <span className={`font-semibold ${vaga.status === 'aberta' ? 'text-green-600' : 'text-gray-600'}`}>{vaga.status}</span>
                   </p>
