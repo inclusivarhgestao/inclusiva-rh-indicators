@@ -1,83 +1,46 @@
-:root {
-  /* Inclusiva RH Brand Colors */
-  --primary: #1565C0;
-  --primary-rgb: 21, 101, 192;
-  --secondary: #F9A825;
-  --secondary-rgb: 249, 168, 37;
-  
-  /* Semantic Colors */
-  --background: #ffffff;
-  --foreground: #1a1a1a;
-  --card: #ffffff;
-  --card-foreground: #1a1a1a;
-  --border: #e5e5e5;
-  --input: #e5e5e5;
-  --ring: #1565C0;
-  --radius: 0.5rem;
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #1565C0;
+  --color-secondary: #F9A825;
+  --color-background: #ffffff;
+  --color-foreground: #1a1a1a;
+  --color-card: #ffffff;
+  --color-card-foreground: #1a1a1a;
+  --color-border: #e5e5e5;
+  --color-input: #e5e5e5;
+  --color-ring: #1565C0;
+  --radius-base: 0.5rem;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold;
+  }
 }
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: var(--background);
-  color: var(--foreground);
-  line-height: 1.5;
-}
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
+  }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
-}
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-md bg-secondary px-4 py-2 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-secondary/90 focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2;
+  }
 
-.container {
-  margin-left: auto;
-  margin-right: auto;
-  max-width: 80rem;
-  padding-left: 1rem;
-  padding-right: 1rem;
-}
+  .card-elevated {
+    @apply rounded-lg border border-border bg-card p-6 shadow-sm;
+  }
 
-.flex {
-  display: flex;
-  min-height: 0;
-  min-width: 0;
-}
-
-button {
-  cursor: pointer;
-  transition-property: color, background-color, border-color;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
-}
-
-/* Inclusiva RH Custom Styles */
-.inclusiva-primary {
-  background-color: var(--primary);
-  color: white;
-}
-
-.inclusiva-secondary {
-  background-color: var(--secondary);
-  color: #1a1a1a;
-}
-
-.inclusiva-gradient {
-  background: linear-gradient(to right, var(--primary), var(--secondary));
-}
-
-.inclusiva-text-primary {
-  color: var(--primary);
-}
-
-.inclusiva-text-secondary {
-  color: var(--secondary);
+  .metric-card {
+    @apply rounded-lg border border-border bg-card p-6 shadow-sm;
+  }
 }

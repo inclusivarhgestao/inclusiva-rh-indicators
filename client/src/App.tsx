@@ -22,7 +22,7 @@ function App() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-primary to-secondary">
+      <div className="flex items-center justify-center h-screen" style={{ background: 'linear-gradient(to bottom right, #1565C0, #F9A825)' }}>
         <div className="text-center">
           <Loader2 className="w-12 h-12 text-white animate-spin mx-auto mb-4" />
           <p className="text-white text-lg">Carregando...</p>
@@ -33,18 +33,19 @@ function App() {
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-primary to-secondary">
+      <div className="flex items-center justify-center h-screen" style={{ background: 'linear-gradient(to bottom right, #1565C0, #F9A825)' }}>
         <div className="text-center">
           <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-            <span className="text-4xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            <span className="text-4xl font-bold" style={{ background: 'linear-gradient(to right, #1565C0, #F9A825)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               IR
             </span>
           </div>
           <h1 className="text-4xl font-bold text-white mb-2">Inclusiva RH</h1>
-          <p className="text-white/80 mb-8">Sistema de Gestão de Recrutamento e Seleção</p>
+          <p className="text-white/80 mb-8">Sistema de Gestao de Recrutamento e Selecao</p>
           <Button
             onClick={() => (window.location.href = getLoginUrl())}
-            className="bg-white text-primary hover:bg-gray-100 font-semibold px-8 py-6 text-lg"
+            className="bg-white hover:bg-gray-100 font-semibold px-8 py-6 text-lg"
+            style={{ color: '#1565C0' }}
           >
             Fazer Login
           </Button>
