@@ -10,13 +10,13 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ mes, ano }: DashboardProps) {
-  const [lojaFilter, setLojaFilter] = useState<string | null>(null);
+  const [lojaFilter, setLojaFilter] = useState<string>("all");
 
   const { data: lojas } = trpc.lojas.list.useQuery();
   const { data: metrics, isLoading } = trpc.dashboard.metrics.useQuery({
     mes,
     ano,
-    lojaId: lojaFilter ? parseInt(lojaFilter) : undefined,
+    lojaId: lojaFilter && lojaFilter !== "all" ? parseInt(lojaFilter) : undefined,
   });
 
   if (isLoading) {
@@ -72,12 +72,12 @@ export default function Dashboard({ mes, ano }: DashboardProps) {
       {/* Filtro por Loja */}
       <div className="flex items-center gap-4 bg-white p-4 rounded-lg border border-gray-200">
         <label className="text-sm font-medium text-gray-700">Filtrar por Loja:</label>
-        <Select value={lojaFilter || ""} onValueChange={(val) => setLojaFilter(val || null)}>
+        <Select value={lojaFilter} onValueChange={(val) => setLojaFilter(val)}>
           <SelectTrigger className="w-64">
             <SelectValue placeholder="Todas as lojas" />
           </SelectTrigger>
           <SelectContent className="z-50">
-            <SelectItem value="">Todas as lojas</SelectItem>
+            <SelectItem value="all">Todas as lojas</SelectItem>
             {lojas?.map((loja: any) => (
               <SelectItem key={loja.id} value={loja.id.toString()}>
                 {loja.nome}
