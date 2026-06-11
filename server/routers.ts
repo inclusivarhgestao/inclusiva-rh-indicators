@@ -206,10 +206,19 @@ export const appRouter = router({
       .input(z.object({
         mes: z.number(),
         ano: z.number(),
+        lojaId: z.number().optional(),
       }))
       .query(async ({ input }) => {
-        const vagas = await db.getVagasByPeriod(input.mes, input.ano);
-        const candidatos = await db.getCandidatosByPeriod(input.mes, input.ano);
+        let vagas = await db.getVagasByPeriod(input.mes, input.ano);
+        let candidatos = await db.getCandidatosByPeriod(input.mes, input.ano);
+        
+        if (input.lojaId) {
+          vagas = vagas.filter(v => v.lojaId === input.lojaId);
+          candidatos = candidatos.filter(c => {
+            const vaga = vagas.find(v => v.id === c.vagaId);
+            return vaga !== undefined;
+          });
+        }
         const indicador = await db.getIndicadorMensal(input.mes, input.ano);
 
         const vagasAbertas = vagas.filter(v => v.status === "aberta").length;

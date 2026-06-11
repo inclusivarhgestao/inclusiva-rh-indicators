@@ -2,6 +2,7 @@ import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface DashboardProps {
   mes: number;
@@ -9,9 +10,13 @@ interface DashboardProps {
 }
 
 export default function Dashboard({ mes, ano }: DashboardProps) {
+  const [lojaFilter, setLojaFilter] = useState<string | null>(null);
+
+  const { data: lojas } = trpc.lojas.list.useQuery();
   const { data: metrics, isLoading } = trpc.dashboard.metrics.useQuery({
     mes,
     ano,
+    lojaId: lojaFilter ? parseInt(lojaFilter) : undefined,
   });
 
   if (isLoading) {
@@ -64,6 +69,24 @@ export default function Dashboard({ mes, ano }: DashboardProps) {
 
   return (
     <div className="space-y-6">
+      {/* Filtro por Loja */}
+      <div className="flex items-center gap-4 bg-white p-4 rounded-lg border border-gray-200">
+        <label className="text-sm font-medium text-gray-700">Filtrar por Loja:</label>
+        <Select value={lojaFilter || ""} onValueChange={(val) => setLojaFilter(val || null)}>
+          <SelectTrigger className="w-64">
+            <SelectValue placeholder="Todas as lojas" />
+          </SelectTrigger>
+          <SelectContent className="z-50">
+            <SelectItem value="">Todas as lojas</SelectItem>
+            {lojas?.map((loja: any) => (
+              <SelectItem key={loja.id} value={loja.id.toString()}>
+                {loja.nome}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       {/* Metric Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {metricCards.map((metric, idx) => (
