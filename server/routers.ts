@@ -26,6 +26,9 @@ export const appRouter = router({
     create: protectedProcedure
       .input(z.object({
         nome: z.string().min(1),
+        cnpj: z.string().optional(),
+        endereco: z.string().optional(),
+        nomeResponsavel: z.string().optional(),
         cidade: z.string().optional(),
         estado: z.string().optional(),
       }))
@@ -36,6 +39,9 @@ export const appRouter = router({
       .input(z.object({
         id: z.number(),
         nome: z.string().optional(),
+        cnpj: z.string().optional(),
+        endereco: z.string().optional(),
+        nomeResponsavel: z.string().optional(),
         cidade: z.string().optional(),
         estado: z.string().optional(),
       }))

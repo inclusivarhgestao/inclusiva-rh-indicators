@@ -13,6 +13,9 @@ export default function Lojas() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     nome: "",
+    cnpj: "",
+    endereco: "",
+    nomeResponsavel: "",
     cidade: "",
     estado: "",
   });
@@ -39,7 +42,7 @@ export default function Lojas() {
         await createLoja.mutateAsync(formData);
         toast.success("Loja criada com sucesso");
       }
-      setFormData({ nome: "", cidade: "", estado: "" });
+      setFormData({ nome: "", cnpj: "", endereco: "", nomeResponsavel: "", cidade: "", estado: "" });
       setEditingId(null);
       setIsDialogOpen(false);
       refetch();
@@ -51,6 +54,9 @@ export default function Lojas() {
   const handleEdit = (loja: any) => {
     setFormData({
       nome: loja.nome,
+      cnpj: loja.cnpj || "",
+      endereco: loja.endereco || "",
+      nomeResponsavel: loja.nomeResponsavel || "",
       cidade: loja.cidade || "",
       estado: loja.estado || "",
     });
@@ -87,7 +93,7 @@ export default function Lojas() {
           <DialogTrigger asChild>
             <Button
               onClick={() => {
-                setFormData({ nome: "", cidade: "", estado: "" });
+                setFormData({ nome: "", cnpj: "", endereco: "", nomeResponsavel: "", cidade: "", estado: "" });
                 setEditingId(null);
               }}
               className="bg-secondary hover:bg-secondary/90 text-secondary-foreground"
@@ -96,17 +102,41 @@ export default function Lojas() {
               Nova Loja
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>{editingId ? "Editar Loja" : "Nova Loja"}</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
+            <div className="space-y-4 max-h-96 overflow-y-auto">
               <div>
                 <label className="text-sm font-medium">Nome da Loja *</label>
                 <Input
                   value={formData.nome}
                   onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
                   placeholder="Ex: Inclusiva RH - Florianópolis"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">CNPJ</label>
+                <Input
+                  value={formData.cnpj}
+                  onChange={(e) => setFormData({ ...formData, cnpj: e.target.value })}
+                  placeholder="Ex: 12.345.678/0001-90"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Endereço</label>
+                <Input
+                  value={formData.endereco}
+                  onChange={(e) => setFormData({ ...formData, endereco: e.target.value })}
+                  placeholder="Ex: Rua das Flores, 123, Centro"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Nome do Responsável</label>
+                <Input
+                  value={formData.nomeResponsavel}
+                  onChange={(e) => setFormData({ ...formData, nomeResponsavel: e.target.value })}
+                  placeholder="Ex: João Silva"
                 />
               </div>
               <div>
@@ -154,6 +184,24 @@ export default function Lojas() {
                     )}
                   </div>
                 </div>
+              </div>
+
+              <div className="space-y-2 mb-4 text-sm">
+                {loja.cnpj && (
+                  <p className="text-gray-700">
+                    <span className="font-medium">CNPJ:</span> {loja.cnpj}
+                  </p>
+                )}
+                {loja.endereco && (
+                  <p className="text-gray-700">
+                    <span className="font-medium">Endereço:</span> {loja.endereco}
+                  </p>
+                )}
+                {loja.nomeResponsavel && (
+                  <p className="text-gray-700">
+                    <span className="font-medium">Responsável:</span> {loja.nomeResponsavel}
+                  </p>
+                )}
               </div>
 
               <div className="flex gap-2 justify-end">

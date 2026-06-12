@@ -97,14 +97,14 @@ export async function getAllLojas() {
   return db.select().from(lojas).where(eq(lojas.ativa, 1)).orderBy(asc(lojas.nome));
 }
 
-export async function createLoja(data: { nome: string; cidade?: string; estado?: string }) {
+export async function createLoja(data: { nome: string; cnpj?: string; endereco?: string; nomeResponsavel?: string; cidade?: string; estado?: string }) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   const result = await db.insert(lojas).values(data);
   return result;
 }
 
-export async function updateLoja(id: number, data: Partial<{ nome: string; cidade?: string; estado?: string }>) {
+export async function updateLoja(id: number, data: Partial<{ nome: string; cnpj?: string; endereco?: string; nomeResponsavel?: string; cidade?: string; estado?: string }>) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   return db.update(lojas).set(data).where(eq(lojas.id, id));

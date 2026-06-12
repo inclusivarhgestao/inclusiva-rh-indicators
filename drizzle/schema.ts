@@ -24,6 +24,9 @@ export type InsertUser = typeof users.$inferInsert;
 export const lojas = mysqlTable("lojas", {
   id: int("id").autoincrement().primaryKey(),
   nome: varchar("nome", { length: 255 }).notNull(),
+  cnpj: varchar("cnpj", { length: 18 }),
+  endereco: text("endereco"),
+  nomeResponsavel: varchar("nomeResponsavel", { length: 255 }),
   cidade: varchar("cidade", { length: 255 }),
   estado: varchar("estado", { length: 2 }),
   ativa: int("ativa").default(1).notNull(),
