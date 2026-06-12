@@ -176,8 +176,8 @@ export async function getVagasByPeriod(mes: number, ano: number) {
   const db = await getDb();
   if (!db) return [];
   
-  const startDate = new Date(ano, mes, 1);
-  const endDate = new Date(ano, mes + 1, 0);
+  const startDate = new Date(ano, mes - 1, 1);
+  const endDate = new Date(ano, mes, 0);
   
   return db.select().from(vagas)
     .where(and(
@@ -253,8 +253,8 @@ export async function getCandidatosByPeriod(mes: number, ano: number) {
   const db = await getDb();
   if (!db) return [];
   
-  const startDate = new Date(ano, mes, 1);
-  const endDate = new Date(ano, mes + 1, 0);
+  const startDate = new Date(ano, mes - 1, 1);
+  const endDate = new Date(ano, mes, 0);
   
   return db.select().from(candidatos)
     .where(and(
