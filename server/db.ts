@@ -197,15 +197,8 @@ export async function getVagasAbertasPorPeriodo(mes: number, ano: number) {
   const db = await getDb();
   if (!db) return 0;
   
-  const startDate = new Date(ano, mes - 1, 1);
-  const endDate = new Date(ano, mes, 0, 23, 59, 59);
-  
   const result = await db.select({ count: sql`COUNT(*)` }).from(vagas)
-    .where(and(
-      gte(vagas.dataAbertura, startDate),
-      lte(vagas.dataAbertura, endDate),
-      eq(vagas.status, "aberta")
-    ));
+    .where(eq(vagas.status, "aberta"));
   
   return result[0]?.count as number || 0;
 }
