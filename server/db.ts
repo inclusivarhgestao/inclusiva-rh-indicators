@@ -1,4 +1,4 @@
-import { eq, and, gte, lte, desc, asc } from "drizzle-orm";
+import { eq, and, gte, lte, desc, sql, asc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, lojas, vagas, candidatos, etapasSeletivas, indicadoresMensais } from "../drizzle/schema";
 import { ENV } from './_core/env';
@@ -191,6 +191,40 @@ export async function getAllVagas() {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(vagas).orderBy(desc(vagas.dataAbertura));
+}
+
+export async function getVagasAbertasPorPeriodo(mes: number, ano: number) {
+  const db = await getDb();
+  if (!db) return 0;
+  
+  const startDate = new Date(ano, mes - 1, 1);
+  const endDate = new Date(ano, mes, 0, 23, 59, 59);
+  
+  const result = await db.select({ count: sql`COUNT(*)` }).from(vagas)
+    .where(and(
+      gte(vagas.dataAbertura, startDate),
+      lte(vagas.dataAbertura, endDate),
+      eq(vagas.status, "aberta")
+    ));
+  
+  return result[0]?.count as number || 0;
+}
+
+export async function getVagasFechadasPorPeriodo(mes: number, ano: number) {
+  const db = await getDb();
+  if (!db) return 0;
+  
+  const startDate = new Date(ano, mes - 1, 1);
+  const endDate = new Date(ano, mes, 0, 23, 59, 59);
+  
+  const result = await db.select({ count: sql`COUNT(*)` }).from(vagas)
+    .where(and(
+      gte(vagas.dataAbertura, startDate),
+      lte(vagas.dataAbertura, endDate),
+      eq(vagas.status, "fechada")
+    ));
+  
+  return result[0]?.count as number || 0;
 }
 
 // ============= CANDIDATOS =============

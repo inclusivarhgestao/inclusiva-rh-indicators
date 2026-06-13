@@ -104,30 +104,24 @@ export const appRouter = router({
 
   // ============= CANDIDATOS =============
   candidatos: router({
-    listByVaga: protectedProcedure
-      .input(z.object({ vagaId: z.number() }))
-      .query(async ({ input }) => {
-        return db.getCandidatosByVaga(input.vagaId);
-      }),
-    listByPeriod: protectedProcedure
+    list: protectedProcedure
       .input(z.object({
-        mes: z.number(),
-        ano: z.number(),
+        mes: z.number().optional(),
+        ano: z.number().optional(),
       }))
       .query(async ({ input }) => {
-        return db.getCandidatosByPeriod(input.mes, input.ano);
+        if (input.mes !== undefined && input.ano !== undefined) {
+          return db.getCandidatosByPeriod(input.mes, input.ano);
+        }
+        return db.getAllCandidatos();
       }),
-    listAll: protectedProcedure.query(async () => {
-      return db.getAllCandidatos();
-    }),
     create: protectedProcedure
       .input(z.object({
-        vagaId: z.number(),
         nome: z.string().min(1),
-        email: z.string().optional(),
-        telefone: z.string().optional(),
+        email: z.string().email(),
+        vagaId: z.number(),
         dataCandidatura: z.union([z.date(), z.string()]),
-        observacoes: z.string().optional(),
+        status: z.enum(["triagem", "entrevista", "teste", "oferta", "contratado", "rejeitado"]).optional(),
       }))
       .mutation(async ({ input }) => {
         return db.createCandidato(input);
@@ -135,12 +129,11 @@ export const appRouter = router({
     update: protectedProcedure
       .input(z.object({
         id: z.number(),
-        vagaId: z.number().optional(),
         nome: z.string().optional(),
-        email: z.string().optional(),
-        telefone: z.string().optional(),
+        email: z.string().email().optional(),
+        vagaId: z.number().optional(),
         status: z.enum(["triagem", "entrevista", "teste", "oferta", "contratado", "rejeitado"]).optional(),
-        observacoes: z.string().optional(),
+        dataCandidatura: z.union([z.date(), z.string()]).optional(),
       }))
       .mutation(async ({ input }) => {
         const { id, ...data } = input;
@@ -155,7 +148,7 @@ export const appRouter = router({
 
   // ============= ETAPAS SELETIVAS =============
   etapas: router({
-    listByCandidato: protectedProcedure
+    list: protectedProcedure
       .input(z.object({ candidatoId: z.number() }))
       .query(async ({ input }) => {
         return db.getEtapasByCandidato(input.candidatoId);
@@ -163,17 +156,16 @@ export const appRouter = router({
     create: protectedProcedure
       .input(z.object({
         candidatoId: z.number(),
-        etapa: z.enum(["triagem", "entrevista", "teste", "oferta"]),
+        etapa: z.enum(["triagem", "entrevista", "teste", "oferta", "contratado", "rejeitado"]),
         dataEtapa: z.date(),
-        resultado: z.enum(["pendente", "aprovado", "reprovado"]).optional(),
-        observacoes: z.string().optional(),
+        resultado: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
         return db.createEtapaSeletiva(input);
       }),
   }),
 
-  // ============= INDICADORES MENSAIS =============
+  // ============= INDICADORES =============
   indicadores: router({
     getMensal: protectedProcedure
       .input(z.object({
@@ -183,19 +175,10 @@ export const appRouter = router({
       .query(async ({ input }) => {
         return db.getIndicadorMensal(input.mes, input.ano);
       }),
-    getByAno: protectedProcedure
-      .input(z.object({ ano: z.number() }))
-      .query(async ({ input }) => {
-        return db.getIndicadoresByAno(input.ano);
-      }),
-    update: protectedProcedure
+    create: protectedProcedure
       .input(z.object({
         mes: z.number(),
         ano: z.number(),
-        vagasAbertas: z.number().optional(),
-        vagasFechadas: z.number().optional(),
-        totalCandidatos: z.number().optional(),
-        contratacoes: z.number().optional(),
         tempoMedioFechamento: z.number().optional(),
         taxaAproveitamento: z.number().optional(),
         resumo: z.string().optional(),
@@ -215,20 +198,22 @@ export const appRouter = router({
         lojaId: z.number().optional(),
       }))
       .query(async ({ input }) => {
-        let vagas = await db.getVagasByPeriod(input.mes, input.ano);
+        let vagasAbertas = await db.getVagasAbertasPorPeriodo(input.mes, input.ano);
+        let vagasFechadas = await db.getVagasFechadasPorPeriodo(input.mes, input.ano);
         let candidatos = await db.getCandidatosByPeriod(input.mes, input.ano);
         
         if (input.lojaId) {
-          vagas = vagas.filter(v => v.lojaId === input.lojaId);
+          const vagas = await db.getVagasByPeriod(input.mes, input.ano);
+          const vagasLoja = vagas.filter(v => v.lojaId === input.lojaId);
+          vagasAbertas = vagasLoja.filter(v => v.status === "aberta").length;
+          vagasFechadas = vagasLoja.filter(v => v.status === "fechada").length;
           candidatos = candidatos.filter(c => {
-            const vaga = vagas.find(v => v.id === c.vagaId);
+            const vaga = vagasLoja.find(v => v.id === c.vagaId);
             return vaga !== undefined;
           });
         }
         const indicador = await db.getIndicadorMensal(input.mes, input.ano);
 
-        const vagasAbertas = vagas.filter(v => v.status === "aberta").length;
-        const vagasFechadas = vagas.filter(v => v.status === "fechada").length;
         const totalCandidatos = candidatos.length;
         const contratados = candidatos.filter(c => c.status === "contratado").length;
 
@@ -279,11 +264,52 @@ export const appRouter = router({
         const cancelada = vagas.filter(v => v.status === "cancelada").length;
 
         return [
-          { name: "Aberta", value: aberta, fill: "#1565C0" },
-          { name: "Em Andamento", value: emAndamento, fill: "#F9A825" },
-          { name: "Fechada", value: fechada, fill: "#4CAF50" },
-          { name: "Cancelada", value: cancelada, fill: "#F44336" },
+          { name: "Aberta", value: aberta },
+          { name: "Em Andamento", value: emAndamento },
+          { name: "Fechada", value: fechada },
+          { name: "Cancelada", value: cancelada },
         ];
+      }),
+
+    relatorioMensal: protectedProcedure
+      .input(z.object({
+        mes: z.number(),
+        ano: z.number(),
+      }))
+      .query(async ({ input }) => {
+        const vagas = await db.getVagasByPeriod(input.mes, input.ano);
+        const candidatos = await db.getCandidatosByPeriod(input.mes, input.ano);
+        const lojas = await db.getAllLojas();
+
+        const relatorioLoja = lojas.map(loja => {
+          const vagasLoja = vagas.filter(v => v.lojaId === loja.id);
+          const candidatosLoja = candidatos.filter(c => {
+            const vaga = vagasLoja.find(v => v.id === c.vagaId);
+            return vaga !== undefined;
+          });
+
+          return {
+            loja: loja.nome,
+            vagasAbertas: vagasLoja.filter(v => v.status === "aberta").length,
+            vagasFechadas: vagasLoja.filter(v => v.status === "fechada").length,
+            totalVagas: vagasLoja.length,
+            totalCandidatos: candidatosLoja.length,
+            contratados: candidatosLoja.filter(c => c.status === "contratado").length,
+          };
+        });
+
+        const totais = {
+          vagasAbertas: vagas.filter(v => v.status === "aberta").length,
+          vagasFechadas: vagas.filter(v => v.status === "fechada").length,
+          totalVagas: vagas.length,
+          totalCandidatos: candidatos.length,
+          contratados: candidatos.filter(c => c.status === "contratado").length,
+        };
+
+        return {
+          relatorioLoja,
+          totais,
+        };
       }),
   }),
 });

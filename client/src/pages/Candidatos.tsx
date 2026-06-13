@@ -41,13 +41,12 @@ export default function Candidatos({ mes, ano }: CandidatosProps) {
     vagaId: "",
     nome: "",
     email: "",
-    telefone: "",
     status: "triagem",
     dataCandidatura: new Date().toISOString().split('T')[0],
   });
 
   const { data: vagas } = trpc.vagas.list.useQuery({ mes, ano });
-  const { data: candidatos, isLoading, refetch } = trpc.candidatos.listByPeriod.useQuery({ mes, ano });
+  const { data: candidatos, isLoading, refetch } = trpc.candidatos.list.useQuery({ mes, ano });
   const createCandidato = trpc.candidatos.create.useMutation();
   const updateCandidato = trpc.candidatos.update.useMutation();
   const deleteCandidato = trpc.candidatos.delete.useMutation();
@@ -65,7 +64,6 @@ export default function Candidatos({ mes, ano }: CandidatosProps) {
           vagaId: parseInt(formData.vagaId),
           nome: formData.nome,
           email: formData.email,
-          telefone: formData.telefone,
           status: formData.status as any,
         });
         toast.success("Candidato atualizado com sucesso");
@@ -74,12 +72,10 @@ export default function Candidatos({ mes, ano }: CandidatosProps) {
           vagaId: parseInt(formData.vagaId),
           nome: formData.nome,
           email: formData.email,
-          telefone: formData.telefone,
           dataCandidatura: formData.dataCandidatura as any,
         });
         toast.success("Candidato criado com sucesso");
       }
-      setFormData({ vagaId: "", nome: "", email: "", telefone: "", status: "triagem", dataCandidatura: new Date().toISOString().split('T')[0] });
       setEditingId(null);
       setIsDialogOpen(false);
       refetch();
@@ -93,7 +89,6 @@ export default function Candidatos({ mes, ano }: CandidatosProps) {
       vagaId: candidato.vagaId.toString(),
       nome: candidato.nome,
       email: candidato.email || "",
-      telefone: candidato.telefone || "",
       status: candidato.status,
       dataCandidatura: candidato.dataCandidatura ? new Date(candidato.dataCandidatura).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
     });
@@ -135,7 +130,6 @@ export default function Candidatos({ mes, ano }: CandidatosProps) {
           <DialogTrigger asChild>
             <Button
               onClick={() => {
-                setFormData({ vagaId: "", nome: "", email: "", telefone: "", status: "triagem", dataCandidatura: new Date().toISOString().split('T')[0] });
                 setEditingId(null);
               }}
               className="bg-secondary hover:bg-secondary/90 text-secondary-foreground"
@@ -184,8 +178,6 @@ export default function Candidatos({ mes, ano }: CandidatosProps) {
               <div>
                 <label className="text-sm font-medium">Telefone</label>
                 <Input
-                  value={formData.telefone}
-                  onChange={(e) => setFormData({ ...formData, telefone: e.target.value })}
                   placeholder="(11) 99999-9999"
                 />
               </div>
@@ -280,9 +272,6 @@ export default function Candidatos({ mes, ano }: CandidatosProps) {
                     <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${statusColors[candidato.status] || "bg-gray-100"}`}>
                       {candidato.status}
                     </span>
-                    {candidato.telefone && (
-                      <span className="text-xs text-gray-500 py-1">{candidato.telefone}</span>
-                    )}
                   </div>
                 </div>
                 <div className="flex gap-2">

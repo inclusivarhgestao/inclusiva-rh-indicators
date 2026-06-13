@@ -28,8 +28,8 @@ export default function Relatorio({ mes, ano }: RelatorioProps) {
   const { data: indicador, isLoading, refetch } = trpc.indicadores.getMensal.useQuery({ mes, ano });
   const { data: lojas } = trpc.lojas.list.useQuery();
   const { data: vagas } = trpc.vagas.list.useQuery({ mes, ano });
-  const { data: candidatos } = trpc.candidatos.listByPeriod.useQuery({ mes, ano });
-  const updateIndicador = trpc.indicadores.update.useMutation();
+  const { data: candidatos } = trpc.candidatos.list.useQuery({ mes, ano });
+  const updateIndicador = trpc.indicadores.create.useMutation();
 
   // Calcular dados por loja
   const dadosPorLoja = lojas?.map((loja: any) => {
