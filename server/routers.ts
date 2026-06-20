@@ -118,10 +118,11 @@ export const appRouter = router({
     create: protectedProcedure
       .input(z.object({
         nome: z.string().min(1),
-        email: z.string().email(),
+        email: z.string().email().optional(),
         vagaId: z.number(),
         dataCandidatura: z.union([z.date(), z.string()]),
         status: z.enum(["triagem", "entrevista", "teste", "oferta", "contratado", "rejeitado"]).optional(),
+        recrutador: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
         return db.createCandidato(input);
@@ -134,6 +135,7 @@ export const appRouter = router({
         vagaId: z.number().optional(),
         status: z.enum(["triagem", "entrevista", "teste", "oferta", "contratado", "rejeitado"]).optional(),
         dataCandidatura: z.union([z.date(), z.string()]).optional(),
+        recrutador: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
         const { id, ...data } = input;

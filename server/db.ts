@@ -228,6 +228,7 @@ export async function createCandidato(data: {
   email?: string;
   telefone?: string;
   dataCandidatura: Date | string;
+  recrutador?: string;
   observacoes?: string;
 }) {
   const db = await getDb();
@@ -240,6 +241,7 @@ export async function createCandidato(data: {
     email: data.email,
     telefone: data.telefone,
     dataCandidatura: dateValue,
+    recrutador: data.recrutador,
     observacoes: data.observacoes,
   });
 }
@@ -250,6 +252,7 @@ export async function updateCandidato(id: number, data: Partial<{
   email: string;
   telefone: string;
   status: string;
+  recrutador: string;
   observacoes: string;
 }>) {
   const db = await getDb();
@@ -260,6 +263,7 @@ export async function updateCandidato(id: number, data: Partial<{
   if (data.email !== undefined) updateData.email = data.email;
   if (data.telefone !== undefined) updateData.telefone = data.telefone;
   if (data.status !== undefined) updateData.status = data.status;
+  if (data.recrutador !== undefined) updateData.recrutador = data.recrutador;
   if (data.observacoes !== undefined) updateData.observacoes = data.observacoes;
   return db.update(candidatos).set(updateData).where(eq(candidatos.id, id));
 }

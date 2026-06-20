@@ -67,6 +67,7 @@ export const candidatos = mysqlTable("candidatos", {
   telefone: varchar("telefone", { length: 20 }),
   dataCandidatura: date("dataCandidatura").notNull(),
   status: mysqlEnum("status", ["triagem", "entrevista", "teste", "oferta", "contratado", "rejeitado"]).default("triagem").notNull(),
+  recrutador: varchar("recrutador", { length: 255 }),
   observacoes: text("observacoes"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

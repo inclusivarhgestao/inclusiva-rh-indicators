@@ -42,9 +42,11 @@ export default function Candidatos({ mes, ano }: CandidatosProps) {
     nome: "",
     email: "",
     status: "triagem",
+    recrutador: "",
     dataCandidatura: new Date().toISOString().split('T')[0],
   });
 
+  const { data: lojas } = trpc.lojas.list.useQuery();
   const { data: vagas } = trpc.vagas.list.useQuery({ mes, ano });
   const { data: candidatos, isLoading, refetch } = trpc.candidatos.list.useQuery({ mes, ano });
   const createCandidato = trpc.candidatos.create.useMutation();
@@ -65,6 +67,7 @@ export default function Candidatos({ mes, ano }: CandidatosProps) {
           nome: formData.nome,
           email: formData.email,
           status: formData.status as any,
+          recrutador: formData.recrutador,
         });
         toast.success("Candidato atualizado com sucesso");
       } else {
@@ -73,6 +76,7 @@ export default function Candidatos({ mes, ano }: CandidatosProps) {
           nome: formData.nome,
           email: formData.email,
           dataCandidatura: formData.dataCandidatura as any,
+          recrutador: formData.recrutador,
         });
         toast.success("Candidato criado com sucesso");
       }
@@ -90,6 +94,7 @@ export default function Candidatos({ mes, ano }: CandidatosProps) {
       nome: candidato.nome,
       email: candidato.email || "",
       status: candidato.status,
+      recrutador: candidato.recrutador || "",
       dataCandidatura: candidato.dataCandidatura ? new Date(candidato.dataCandidatura).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
     });
     setEditingId(candidato.id);
@@ -173,6 +178,14 @@ export default function Candidatos({ mes, ano }: CandidatosProps) {
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder="email@example.com"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Recrutador</label>
+                <Input
+                  value={formData.recrutador}
+                  onChange={(e) => setFormData({ ...formData, recrutador: e.target.value })}
+                  placeholder="Nome do recrutador"
                 />
               </div>
               <div>
@@ -264,14 +277,32 @@ export default function Candidatos({ mes, ano }: CandidatosProps) {
             <Card key={candidato.id} className="p-4 border-l-4 border-l-secondary">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <h3 className="font-semibold text-lg text-primary">{candidato.nome}</h3>
-                  <p className="text-sm text-gray-600">Vaga: {vagas?.find((v: any) => v.id === candidato.vagaId)?.cargo || 'Desconhecida'}</p>
-                  <p className="text-sm text-gray-600">{candidato.email || "Sem email"}</p>
-                  <p className="text-sm text-gray-600">Data: {new Date(candidato.dataCandidatura).toLocaleDateString('pt-BR')}</p>
-                  <div className="flex gap-2 mt-2">
+                  <div className="flex justify-between items-start">
+                    <h3 className="font-semibold text-lg text-primary">{candidato.nome}</h3>
                     <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${statusColors[candidato.status] || "bg-gray-100"}`}>
-                      {candidato.status}
+                      {statusLabels[candidato.status] || candidato.status}
                     </span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1 mt-2">
+                    <p className="text-sm text-gray-600">
+                      <span className="font-medium">Vaga:</span> {vagas?.find((v: any) => v.id === candidato.vagaId)?.cargo || 'Desconhecida'}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      <span className="font-medium">Loja:</span> {(() => {
+                        const vaga = vagas?.find((v: any) => v.id === candidato.vagaId);
+                        const loja = lojas?.find((l: any) => l.id === vaga?.lojaId);
+                        return loja?.nome || 'Não informada';
+                      })()}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      <span className="font-medium">Recrutador:</span> {candidato.recrutador || "Não informado"}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      <span className="font-medium">Data:</span> {new Date(candidato.dataCandidatura).toLocaleDateString('pt-BR')}
+                    </p>
+                    <p className="text-sm text-gray-600 col-span-full">
+                      <span className="font-medium">Email:</span> {candidato.email || "Sem email"}
+                    </p>
                   </div>
                 </div>
                 <div className="flex gap-2">
